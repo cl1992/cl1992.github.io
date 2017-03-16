@@ -17,7 +17,7 @@
 <!--<![endif]-->
 
 <head>
-  <title>Wayne Neko</title>
+  <title>signature scheme v2问题 | Wayne Neko</title>
   <!-- Meta data -->
     <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" >
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
@@ -173,112 +173,65 @@
         <!-- ============================ Header & Logo bar =========================== -->
 
 
-      <!-- ============================ Hero Image =========================== -->
-
-<section id="hero" class="scrollme">
-    <div class="container-fluid element-img" style="background: url(/img/bg_img.jpg) no-repeat center center fixed;background-size: cover">
-        <div class="row">
-            <div class="col-xs-12 col-sm-8 col-sm-offset-2 col-md-8 col-md-offset-2 vertical-align cover boost text-center">
-                <div class="center-me animateme" data-when="exit" data-from="0" data-to="0.6" data-opacity="0" data-translatey="100">
-                    <div>
-                        
-                        <h2>Lose Yourself</h2>
-                        <p></p>
-                        
-                        <h2></h2>
-                        <p></p>
-                        
-
-                    </div>
-                </div>
-            </div>
-            <!-- // .col-md-12 -->
-        </div>
-        <div class="herofade beige-dk"></div>
-    </div>
-</section>
-
-<!-- Height spacing helper -->
-<div class="heightblock"></div>
-<!-- // End height spacing helper -->
-
-<!-- ============================ END Hero Image =========================== -->
+      
 <section id="intro">
     <div class="container">
         <div class="row col-md-offset-2">
             <div class="col-md-8">
-                <h1></h1>
+    			<span class="post-meta">
+      <time datetime="2017-03-16T07:05:02.000Z" itemprop="datePublished">
+          2017-03-16
+      </time>
+    
+    
+    | 
+    <a href='/tags/编程/'>编程</a>
+    
+    
+</span>
+                <h1>signature scheme v2问题</h1>
             </div>
         </div>
         <div class="col-md-8 col-md-offset-2">
-            <h1 id="about-wayne-neko"><a href="#about-wayne-neko" class="headerlink" title="about wayne neko"></a>about wayne neko</h1><p>还没想好..</p>
+      		<p>#signature scheme v2问题</p>
+<p>##发现<br>今天提测之后测试来了一个很神奇的问题，直接反馈是安装新包提示<code>程序未安装</code>，我经验中遇到不能安装的情况，无非就是<code>系统版本不满足要求</code>，检查代码后，排除了这个情况，但是这次我第一次遇到。</p>
+<p>首先，从真机上并没有直观的反馈问题所在，于是我用adb命令安装了apk，得到了报错结果：<code>INSTALL_PARSE_FAILED_NO_CERTIFICATES</code>，这样就能知道问题和签名有关。<br>排除了缺少签名或者需要重新签名这种情况，那么问题在哪呢。</p>
+<p>感谢google 让我找到了这个链接<a href="https://github.com/mcxiaoke/packer-ng-plugin/issues/31/" target="_blank" rel="external">https://github.com/mcxiaoke/packer-ng-plugin/issues/31/</a>看到了问题所在</p>
+<p>##了解<br>为了提高Android系统的安全性，Google从Android 7.0开始增加一种新的增强签名模式，从Android Gradle Plugin 2.2.0开始，构建系统在打包应用后签名时默认使用APK signature scheme v2，该模式在原有的签名模式上，增加校验APK的SHA256哈希值，如果签名后对APK作了任何修改，安装时会校验失败，提示没有签名无法安装，使用本工具修改的APK会无法安装，解决办法是在 signingConfigs 里增加 v2SigningEnabled false ，禁用新版签名模式，技术细节请看官方文档：<a href="https://developer.android.com/about/versions/nougat/android-7.0.html#apk_signature_v2/" target="_blank" rel="external">https://developer.android.com/about/versions/nougat/android-7.0.html#apk_signature_v2/</a></p>
+<p>##解决<br>找到了问题来源那么让我们开始解决它吧，其实官网文档已经给出了解决方案，在<code>build.gradle</code>文件中<code>signingConfigs</code>里加入<code>v2SigningEnabled false</code>，问题就这么解决了么？我们打包试试，Build-&gt;Generate Signed APK，打完包重新安装，问题依然存在。</p>
+<p>回过头看，我们在<code>build.gradle</code>中去配置，那么我们在界面化打包过程中并没有参与<code>gradle</code>的配置，所以我们需要用<code>gradle</code>命令打包</p>
+<p>##Gradle命令打包<br>参考：<a href="https://juejin.im/entry/577383c66be3ff006adc92a3/" target="_blank" rel="external">https://juejin.im/entry/577383c66be3ff006adc92a3/</a></p>
+<p>打开AS底部的<code>Terminal</code>，敲行代码<code>./gradlew assembleRelease</code>，如果系统中没有安装Gradle，则会自动下载完成安装及初始化<img src="https://raw.githubusercontent.com/cl1992/cl1992.github.io/master/images/283FF51A-E295-4906-8C99-7EB5AC915B00.png" alt="Wayne Neko"></p>
+<p>在app–&gt;build–&gt;outputs–&gt;apk路径中就可以看到打包成功后的APK</p>
+<p>值得一提的是，不同渠道不同版本怎么打包，<br>举个例子来说明：</p>
+<p><em>打包official渠道的release版本</em></p>
+<p><code>gradlew assembleofficialRelease</code></p>
+<p><em>打包official渠道的debug版本</em></p>
+<p><code>gradlew assembleofficialDebug</code></p>
+<p><em>打包official渠道的所有版本(Release+Debug+..)</em></p>
+<p><code>gradlew assembleofficial</code></p>
+<p><em>打全部渠道Release版本</em></p>
+<p><code>gradlew assembleRelease</code></p>
 
             <div class="clearfix"></div>
+            <hr class="nogutter">
         </div>
-        
+        <nav class="pagination" role="pagination">
+    
+    
+    <a class="pull-right" href="/2017/03/07/hexo-command/">
+        hexo_command →
+    </a>
+    
+</nav>
+
+        <div class="duoshuo">
+
+
+</div>
     </div>
 </section>
-<section id="process">
-    <div class="container">
-        <div class="row">
-            <div class="col-xs-12 col-sm-12 col-md-8 col-md-offset-2">
-                <div class="timeline-centered">
-                    <div class="line"></div>
-                    <div class="present">Past</div>
-                    <div class="dot_tp"></div>
-                    <div class="born">Now</div>
-                    <div class="dot_bt"></div>
-                    
-                        <div class="timeline-entry">
-                            <div class="timeline-entry-inner">
-                                <div class="timeline-icon wow fadeInUp" data-wow-delay="0.2s">
-                                    <span class="number">1</span>
-                                </div>
-                                <div class="timeline-label wow fadeInUp" data-wow-delay="0.2s">
-                                    <p>2014/06/12-Start</p>
-                                </div>
-                            </div>
-                        </div>
-                    
-                        <div class="timeline-entry">
-                            <div class="timeline-entry-inner">
-                                <div class="timeline-icon wow fadeInUp" data-wow-delay="0.2s">
-                                    <span class="number">2</span>
-                                </div>
-                                <div class="timeline-label wow fadeInUp" data-wow-delay="0.2s">
-                                    <p>2014/11/29-XXX</p>
-                                </div>
-                            </div>
-                        </div>
-                    
-                        <div class="timeline-entry">
-                            <div class="timeline-entry-inner">
-                                <div class="timeline-icon wow fadeInUp" data-wow-delay="0.2s">
-                                    <span class="number">3</span>
-                                </div>
-                                <div class="timeline-label wow fadeInUp" data-wow-delay="0.2s">
-                                    <p>2015/02/18-DDD</p>
-                                </div>
-                            </div>
-                        </div>
-                    
-                        <div class="timeline-entry">
-                            <div class="timeline-entry-inner">
-                                <div class="timeline-icon wow fadeInUp" data-wow-delay="0.2s">
-                                    <span class="number">4</span>
-                                </div>
-                                <div class="timeline-label wow fadeInUp" data-wow-delay="0.2s">
-                                    <p>More</p>
-                                </div>
-                            </div>
-                        </div>
-                    
-                </div>
-                <!-- timeline-centered -->
-            </div>
-        </div>
-    </div>
-</section>
+
 
       
 <!-- ============================ Footer =========================== -->
