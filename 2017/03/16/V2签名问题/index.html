@@ -193,14 +193,13 @@
             </div>
         </div>
         <div class="col-md-8 col-md-offset-2">
-      		<p>#signature scheme v2问题</p>
-<p>##发现<br>今天提测之后测试来了一个很神奇的问题，直接反馈是安装新包提示<code>程序未安装</code>，我经验中遇到不能安装的情况，无非就是<code>系统版本不满足要求</code>，检查代码后，排除了这个情况，但是这次我第一次遇到。</p>
+      		<h1 id="signature-scheme-v2问题"><a href="#signature-scheme-v2问题" class="headerlink" title="signature scheme v2问题"></a>signature scheme v2问题</h1><h2 id="发现"><a href="#发现" class="headerlink" title="发现"></a>发现</h2><p>今天提测之后测试来了一个很神奇的问题，直接反馈是安装新包提示<code>程序未安装</code>，我经验中遇到不能安装的情况，无非就是<code>系统版本不满足要求</code>，检查代码后，排除了这个情况，但是这次我第一次遇到。</p>
 <p>首先，从真机上并没有直观的反馈问题所在，于是我用adb命令安装了apk，得到了报错结果：<code>INSTALL_PARSE_FAILED_NO_CERTIFICATES</code>，这样就能知道问题和签名有关。<br>排除了缺少签名或者需要重新签名这种情况，那么问题在哪呢。</p>
 <p>感谢google 让我找到了这个链接<a href="https://github.com/mcxiaoke/packer-ng-plugin/issues/31/" target="_blank" rel="external">https://github.com/mcxiaoke/packer-ng-plugin/issues/31/</a>看到了问题所在</p>
-<p>##了解<br>为了提高Android系统的安全性，Google从Android 7.0开始增加一种新的增强签名模式，从Android Gradle Plugin 2.2.0开始，构建系统在打包应用后签名时默认使用APK signature scheme v2，该模式在原有的签名模式上，增加校验APK的SHA256哈希值，如果签名后对APK作了任何修改，安装时会校验失败，提示没有签名无法安装，使用本工具修改的APK会无法安装，解决办法是在 signingConfigs 里增加 v2SigningEnabled false ，禁用新版签名模式，技术细节请看官方文档：<a href="https://developer.android.com/about/versions/nougat/android-7.0.html#apk_signature_v2/" target="_blank" rel="external">https://developer.android.com/about/versions/nougat/android-7.0.html#apk_signature_v2/</a></p>
-<p>##解决<br>找到了问题来源那么让我们开始解决它吧，其实官网文档已经给出了解决方案，在<code>build.gradle</code>文件中<code>signingConfigs</code>里加入<code>v2SigningEnabled false</code>，问题就这么解决了么？我们打包试试，Build-&gt;Generate Signed APK，打完包重新安装，问题依然存在。</p>
+<h2 id="了解"><a href="#了解" class="headerlink" title="了解"></a>了解</h2><p>为了提高Android系统的安全性，Google从Android 7.0开始增加一种新的增强签名模式，从Android Gradle Plugin 2.2.0开始，构建系统在打包应用后签名时默认使用APK signature scheme v2，该模式在原有的签名模式上，增加校验APK的SHA256哈希值，如果签名后对APK作了任何修改，安装时会校验失败，提示没有签名无法安装，使用本工具修改的APK会无法安装，解决办法是在 signingConfigs 里增加 v2SigningEnabled false ，禁用新版签名模式，技术细节请看官方文档：<a href="https://developer.android.com/about/versions/nougat/android-7.0.html#apk_signature_v2/" target="_blank" rel="external">https://developer.android.com/about/versions/nougat/android-7.0.html#apk_signature_v2/</a></p>
+<h2 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h2><p>找到了问题来源那么让我们开始解决它吧，其实官网文档已经给出了解决方案，在<code>build.gradle</code>文件中<code>signingConfigs</code>里加入<code>v2SigningEnabled false</code>，问题就这么解决了么？我们打包试试，Build-&gt;Generate Signed APK，打完包重新安装，问题依然存在。</p>
 <p>回过头看，我们在<code>build.gradle</code>中去配置，那么我们在界面化打包过程中并没有参与<code>gradle</code>的配置，所以我们需要用<code>gradle</code>命令打包</p>
-<p>##Gradle命令打包<br>参考：<a href="https://juejin.im/entry/577383c66be3ff006adc92a3/" target="_blank" rel="external">https://juejin.im/entry/577383c66be3ff006adc92a3/</a></p>
+<h2 id="Gradle命令打包"><a href="#Gradle命令打包" class="headerlink" title="Gradle命令打包"></a>Gradle命令打包</h2><p>参考：<a href="https://juejin.im/entry/577383c66be3ff006adc92a3/" target="_blank" rel="external">https://juejin.im/entry/577383c66be3ff006adc92a3/</a></p>
 <p>打开AS底部的<code>Terminal</code>，敲行代码<code>./gradlew assembleRelease</code>，如果系统中没有安装Gradle，则会自动下载完成安装及初始化<img src="https://raw.githubusercontent.com/cl1992/cl1992.github.io/master/images/283FF51A-E295-4906-8C99-7EB5AC915B00.png" alt="Wayne Neko"></p>
 <p>在app–&gt;build–&gt;outputs–&gt;apk路径中就可以看到打包成功后的APK</p>
 <p>值得一提的是，不同渠道不同版本怎么打包，<br>举个例子来说明：</p>
