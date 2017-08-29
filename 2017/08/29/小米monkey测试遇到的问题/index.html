@@ -194,8 +194,30 @@
         </div>
         <div class="col-md-8 col-md-offset-2">
       		<p>很久没写博客了，一忙就会忘，然后越忘越想不起来，大概是年纪大了吧。</p>
-<p>问题来源：<br>    市场提交了新包到小米应用市场，然后monkey测试不通过，通过返回的日志观察，发现抛出的异常是<img src="https://raw.githubusercontent.com/cl1992/cl1992.github.io/master/images/283FF51A-E295-4906-8C99-7EB5AC915B00.png" alt="Wayne Neko"></p>
-
+<p>问题来源：<br>    市场提交了新包到小米应用市场，然后monkey测试不通过，通过返回的日志观察，发现抛出的异常是<img src="https://raw.githubusercontent.com/cl1992/cl1992.github.io/master/images/2E8B0373-95A2-4F2E-B989-765682492896.png" alt="Wayne Neko"></p>
+<p>定位问题：<br>    通过bug日志分析出异常为java.lang.IllegalArgumentException: View not attached to window manager，还能看到是因为progressDialog相关的操作引起的异常，那么正常测试下来没有问题为什么monkey就会有问题呢。<br>    在网络上搜索后发现，多数情况下出现这种错误，都是在dismiss Dialog时，发现创建该Dialog的Activity存在而导致的。<br>比如在界面上显示一个 Dialog，当任务处理结束后再Dismiss Dialog。如果在Dialog显示期间，该Activity因为某种原因被杀掉且又重新启动了，那么当任务结束时，Dismiss Dialog的时候WindowManager检查，就会发现该Dialog所属的Activity已经不存在了(重新启动了一次，是一个新的 Activity)，所以会报IllegalArgumentException： View not attached to window manager.<br>    分析完之后我们就能知道在Dialog在执行dismiss方法时，发现启动它的Activity已经不见了，被杀掉了(现在这个是重新启动的)，所以才报错出现异常，至于monkey中为什么会销毁activity呢，这个我也不是很清楚。</p>
+<p>问题解决：<br>    知道原因之后解决就不难了，方案就几种：1，dialog的生命周期和activity生命周期绑定；2，在dialog show和dismiss的时候查看activity的状态。相比1方案我觉得2方案会比较好处理，那么我们继续。</p>
+<p>使用activity的API处理</p>
+<pre><code>PS：activity.isfinishing的官方API：
+Check to see whether this activity is in the process of finishing, either
+because you calledfinish() on it or someone else has requested that it
+finished. This is often used inonPause() to determine whether the activity
+is simply pausing or completely finishing.
+</code></pre><ul>
+<li>Returns If the activity is finishing, returns true; else returns false.</li>
+</ul>
+<p>isfinishing方法返回true，那么当前页面销毁，反之亦然。</p>
+<p>所以处理代码如下</p>
+<pre><code>private boolean isValidContext (Context c){       
+        Activity a = (Activity)c;  
+          if (a.isDestroyed() || a.isFinishing()){  
+            Log.i(&quot;DEMO&quot;, &quot;Activity is invalid.&quot; + &quot; isDestoryed--&gt;&quot; + a.isDestroyed() + &quot; isFinishing--&gt;&quot; + a.isFinishing());  
+            return false;  
+        }else{  
+            return true;  
+        }  
+    }
+</code></pre>
             <div class="clearfix"></div>
             <hr class="nogutter">
         </div>
